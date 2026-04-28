@@ -47,6 +47,10 @@ fig, axes = plt.subplots(4, 8, figsize=(22, 11))
 
 print(f"\nRunning experiments on randomly selected people (IDs: {random_people})...")
 
+def pixel_accuracy(original, recalled):
+    """Calculate the percentage of correctly recalled pixels."""
+    return np.mean(original == recalled) * 100
+    
 # --- 3. Run the Grid Experiment ---
 for row, target_idx in enumerate(target_indices):
     print(f"\nProcessing Subject {row + 1}...")
@@ -74,6 +78,8 @@ for row, target_idx in enumerate(target_indices):
         # Train and Recall
         W = train_hopfield(training_set)
         recall = recall_async(W, corrupted_cue, epochs=3)
+        accuracy = pixel_accuracy(target_face, recall)
+        print(f"Recall accuracy with {count} faces: {accuracy:.2f}%")
         
         # Plot Results
         axes[row, col + 2].imshow(recall.reshape(64, 64), cmap='Greys_r')
@@ -85,6 +91,6 @@ for ax in axes.flatten():
     ax.axis('off')
 
 plt.suptitle('Complete Memory Degradation Spectrum (Random Subjects)', y=0.98, fontsize=18)
-plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.tight_layout(rect=(0, 0, 1, 0.95))
 
 plt.show()
