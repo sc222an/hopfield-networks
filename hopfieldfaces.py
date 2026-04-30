@@ -23,6 +23,14 @@ def recall_async(W, pattern, epochs=3):
             current_state[i] = 1 if net_input > 0 else -1
     return current_state
 
+# Number of pixels that differ in the same position
+def hamming_distance(target, recall):
+    return np.sum(target != recall)
+
+# Percentage of correctly recalled pixels
+def pixel_accuracy(target, recall):
+    return (1 - (np.sum(target != recall) / len(target))) * 100
+
 # --- 1. Fetch and Preprocess the Faces ---
 print("Downloading and processing Olivetti Faces...")
 faces_data = fetch_olivetti_faces(shuffle=False) 
@@ -56,10 +64,15 @@ for row, target_idx in enumerate(target_indices):
     corrupted_cue = np.copy(target_face)
     noise_indices = np.random.choice(N, size=int(0.5 * N), replace=False)
     corrupted_cue[noise_indices] = -1
+
+    # Calculate metrics
+    distance = hamming_distance(target_face, corrupted_cue)
+    accuracy = pixel_accuracy(target_face, corrupted_cue)
     
     # Plot Original and Cue
     axes[row, 0].imshow(target_face.reshape(64, 64), cmap='Greys_r')
     axes[row, 1].imshow(corrupted_cue.reshape(64, 64), cmap='Greys_r')
+    axes[row, 1].set_xlabel(f'Hamming Distance: {distance}\nPixel Accuracy: {int(accuracy)}%', fontsize=12)
     
     if row == 0:
         axes[row, 0].set_title('Original Target', fontweight='bold', fontsize=12)
@@ -74,15 +87,21 @@ for row, target_idx in enumerate(target_indices):
         # Train and Recall
         W = train_hopfield(training_set)
         recall = recall_async(W, corrupted_cue, epochs=3)
+
+        # Calculate metrics
+        distance = hamming_distance(target_face, recall)
+        accuracy = pixel_accuracy(target_face, recall)
         
         # Plot Results
         axes[row, col + 2].imshow(recall.reshape(64, 64), cmap='Greys_r')
+        axes[row, col + 2].set_xlabel(f'Hamming Distance: {distance}\nPixel Accuracy: {int(accuracy)}%', fontsize=12)
         if row == 0:
             axes[row, col + 2].set_title(f'Recall ({count} Faces)', fontweight='bold', fontsize=12)
 
 # --- 4. Format and Display ---
 for ax in axes.flatten():
-    ax.axis('off')
+    ax.set_xticks([])
+    ax.set_yticks([])
 
 plt.suptitle('Complete Memory Degradation Spectrum (Random Subjects)', y=0.98, fontsize=18)
 plt.tight_layout(rect=[0, 0, 1, 0.95])
