@@ -34,10 +34,11 @@ def pixel_accuracy(target, recall):
 def memory_capacity_experiment():
     loading_conditions = [2, 6, 10, 15, 40, 100]
 
-    fig, axes = plt.subplots(4, 8, figsize=(22, 11))
-
     for row, target_idx in enumerate(target_indices):
         print(f"\nProcessing Subject {row + 1}...")
+        
+        fig, axes = plt.subplots(1, 8, figsize=(22, 3.5)) 
+        
         target_face = binary_patterns[target_idx]
         
         # Create the Corrupted Cue (50% missing data / forced to black)
@@ -50,18 +51,17 @@ def memory_capacity_experiment():
         accuracy = pixel_accuracy(target_face, corrupted_cue)
         
         # Plot Original and Cue
-        axes[row, 0].imshow(target_face.reshape(64, 64), cmap='Greys_r')
-        axes[row, 1].imshow(corrupted_cue.reshape(64, 64), cmap='Greys_r')
-        axes[row, 1].set_xlabel(f'Hamming Distance: {distance}\nPixel Accuracy: {int(accuracy)}%', fontsize=12)
+        axes[0].imshow(target_face.reshape(64, 64), cmap='Greys_r')
+        axes[1].imshow(corrupted_cue.reshape(64, 64), cmap='Greys_r')
+        axes[1].set_xlabel(f'Hamming Distance: {distance}\nPixel Accuracy: {int(accuracy)}%', fontsize=12)
         
-        if row == 0:
-            axes[row, 0].set_title('Original Target', fontweight='bold', fontsize=12)
-            axes[row, 1].set_title('Cue (50% Missing)', fontweight='bold', fontsize=12)
+        axes[0].set_title('Original Target', fontweight='bold', fontsize=12)
+        axes[1].set_title('Cue (50% Missing)', fontweight='bold', fontsize=12)
             
         for col, count in enumerate(loading_conditions):
             # Build a training set specifically for this condition
             other_faces = np.delete(binary_patterns, target_idx, axis=0)
-            np.random.shuffle(other_faces) # Randomize the background faces each time
+            np.random.shuffle(other_faces) 
             training_set = np.vstack([target_face, other_faces[:count - 1]])
             
             # Train and Recall
@@ -73,20 +73,76 @@ def memory_capacity_experiment():
             accuracy = pixel_accuracy(target_face, recall)
             
             # Plot Results
-            axes[row, col + 2].imshow(recall.reshape(64, 64), cmap='Greys_r')
-            axes[row, col + 2].set_xlabel(f'Hamming Distance: {distance}\nPixel Accuracy: {int(accuracy)}%', fontsize=12)
-            if row == 0:
-                axes[row, col + 2].set_title(f'Recall ({count} Faces)', fontweight='bold', fontsize=12)
+            axes[col + 2].imshow(recall.reshape(64, 64), cmap='Greys_r')
+            axes[col + 2].set_xlabel(f'Hamming Distance: {distance}\nPixel Accuracy: {int(accuracy)}%', fontsize=12)
+            axes[col + 2].set_title(f'Recall ({count} Faces)', fontweight='bold', fontsize=12)
 
-    # Format and Display
-    for ax in axes.flatten():
-        ax.set_xticks([])
-        ax.set_yticks([])
+        # Format and Display
+        for ax in axes:
+            ax.set_xticks([])
+            ax.set_yticks([])
 
-    plt.suptitle('Complete Memory Degradation Spectrum (Random Subjects)', y=0.98, fontsize=18)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+        plt.suptitle(f'Memory Capacity Spectrum (Subject {row + 1})', y=1.05, fontsize=16)
+        plt.tight_layout()
+        plt.show() 
 
-    plt.show()
+# stored faces: total number of faces to store in the memory
+def noise_experiments(stored_faces):
+    noise = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    
+    for row, target_idx in enumerate(target_indices):
+        print(f"\nProcessing Subject {row + 1}...")
+
+        fig, axes = plt.subplots(1, 8, figsize=(24, 3.5))
+
+        # Plot Original
+        target_face = binary_patterns[target_idx]
+        axes[0].imshow(target_face.reshape(64, 64), cmap='Greys_r')
+        axes[0].set_title('Original Target', fontweight='bold', fontsize=12)
+
+        # Build a training set
+        other_faces = np.delete(binary_patterns, target_idx, axis=0)
+        np.random.shuffle(other_faces) 
+        training_set = np.vstack([target_face, other_faces[:stored_faces - 1]])
+
+        W = train_hopfield(training_set)
+
+        current_row_accuracies = []
+
+        for col, value in enumerate(noise):
+            noisy_target = np.copy(target_face)
+            noise_indices = np.random.choice(N, size=int(value * N), replace=False)
+            noisy_target[noise_indices] = -1
+
+            # Recall and Calculate metrics
+            recall = recall_async(W, noisy_target, epochs=3)
+            distance = hamming_distance(target_face, recall)
+            accuracy = pixel_accuracy(target_face, recall)
+            current_row_accuracies.append(accuracy)
+            
+            # Plot Image Results
+            axes[col + 1].imshow(recall.reshape(64, 64), cmap='Greys_r')
+            axes[col + 1].set_xlabel(f'HD: {distance}\nAcc: {int(accuracy)}%', fontsize=12)
+            axes[col + 1].set_title(f'Recall ({int(value*100)}% Noise)', fontweight='bold', fontsize=12)
+
+        ax_plot = axes[7]
+        ax_plot.plot([int(n*100) for n in noise], current_row_accuracies, marker='o', color='black', linewidth=2)
+        
+        ax_plot.set_ylim(0, 105)
+        ax_plot.set_ylabel('Accuracy (%)')
+        ax_plot.set_xlabel('Noise Level (%)')
+        ax_plot.grid(True, linestyle='--', alpha=0.7)
+        ax_plot.set_title('Performance Curve', fontweight='bold', fontsize=12)
+
+        # Only hide the ticks for the face images
+        for col in range(8):
+            if col < 7: 
+                axes[col].set_xticks([])
+                axes[col].set_yticks([])
+
+        plt.suptitle(f'Quality of Recall as Noise Increases ({stored_faces} Faces Stored) - Subject {row + 1}', y=1.05, fontsize=16)
+        plt.tight_layout()
+        plt.show()
 
 # --- 1. Fetch and Preprocess the Faces ---
 print("Downloading and processing Olivetti Faces...")
@@ -109,3 +165,4 @@ print(f"\nRunning experiments on randomly selected people (IDs: {random_people})
 
 # Run experiments
 memory_capacity_experiment()
+noise_experiments(stored_faces = 6)
