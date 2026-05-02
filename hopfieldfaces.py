@@ -3,13 +3,23 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_olivetti_faces
 from skimage.filters import threshold_otsu
 
-def train_hopfield(patterns):
+def train_hopfield(patterns, print_stats = False):
     """Hebbian learning rule to calculate the weight matrix."""
     num_patterns, num_neurons = patterns.shape
+    pattern_load_ratio = num_patterns / num_neurons
     W = np.zeros((num_neurons, num_neurons))
     for p in patterns:
         W += np.outer(p, p)
     np.fill_diagonal(W, 0)
+
+    # Print stats
+    print(f"""
+    Network stats\n 
+    Number of patterns: {num_patterns}\n
+    Number of neurons: {num_neurons}\n
+    Pattern load ratio: {pattern_load_ratio:.4f}\n
+    """ if print_stats else "")
+
     return W / num_neurons
 
 def recall_async(W, pattern, epochs=3):
@@ -31,7 +41,7 @@ def hamming_distance(target, recall):
 def pixel_accuracy(target, recall):
     return (1 - (np.sum(target != recall) / len(target))) * 100
 
-def memory_capacity_experiment():
+def memory_capacity_experiment(print_stats = False):
     loading_conditions = [2, 6, 10, 15, 40, 100]
 
     for row, target_idx in enumerate(target_indices):
@@ -65,7 +75,7 @@ def memory_capacity_experiment():
             training_set = np.vstack([target_face, other_faces[:count - 1]])
             
             # Train and Recall
-            W = train_hopfield(training_set)
+            W = train_hopfield(training_set, print_stats)
             recall = recall_async(W, corrupted_cue, epochs=3)
 
             # Calculate metrics
@@ -87,7 +97,7 @@ def memory_capacity_experiment():
         plt.show() 
 
 # stored faces: total number of faces to store in the memory
-def noise_experiments(stored_faces):
+def noise_experiments(stored_faces, print_stats = False):
     noise = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     
     for row, target_idx in enumerate(target_indices):
@@ -105,7 +115,7 @@ def noise_experiments(stored_faces):
         np.random.shuffle(other_faces) 
         training_set = np.vstack([target_face, other_faces[:stored_faces - 1]])
 
-        W = train_hopfield(training_set)
+        W = train_hopfield(training_set, print_stats)
 
         current_row_accuracies = []
 
