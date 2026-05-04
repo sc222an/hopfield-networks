@@ -272,7 +272,7 @@ plt.suptitle(
     fontsize=18
 )
 
-plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.tight_layout(rect=(0, 0, 1, 0.95))
 plt.show()
 
 
