@@ -5,7 +5,7 @@ Implements a Hopfield Neural Network to evaluate memory recall capacity and visu
 
 **Components**
 *   **Energy Visualisation**: Projects the high-dimensional energy landscape into 2D contour maps and smooth 3D surface plots using `tanh`, visualising memory attractors between target and stored faces.
-*   **Outputs**: Generates visual comparison grids of recalled faces, performance plots (Accuracy, Error, Energy, and Load Ratio vs. Stored Faces), and exports summary metrics to `hopfield_results.csv`.
+*   **Outputs**: Generates grids of recalled faces, performance plots (Accuracy, Error, Energy, and Load Ratio vs. Stored Faces), and exports summary metrics to `hopfield_results.csv`.
 
 ### hopfieldfaces.py
 ### Hopfield Network Noise Analysis
@@ -13,5 +13,5 @@ Implements a Hopfield Neural Network to evaluate memory recall capacity and visu
 Evaluates the robustness of a Hopfield Network against varying levels of input noise.
 
 **Components**
-*   **Noise Threshold Experiment**: Introduces incrementally higher levels of noise (10% to 60%) into the target cue while maintaining a fixed memory load of 6 faces.
+*   **Noise Threshold Experiment**: Introduces incrementally higher levels of noise (10% to 60%) into the target cue on a fixed memory load of 6 faces.
 *   **Outputs**: Plots grids combining original targets, corrupted cues, recalled patterns, and a performance curve to show recall accuracy against increasing noise levels.
