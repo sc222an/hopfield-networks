@@ -5,10 +5,7 @@ from sklearn.datasets import fetch_olivetti_faces
 from skimage.filters import threshold_otsu
 from mpl_toolkits.mplot3d import Axes3D
 
-
-# -----------------------------
-# Hopfield Network Functions
-# -----------------------------
+# Network functions
 
 def train_hopfield(patterns):
     """Hebbian learning rule to calculate the weight matrix."""
@@ -63,10 +60,7 @@ def recall_async(W, pattern, epochs=3, track_energy=True):
 
     return current_state, energy_history, epochs_used
 
-
-# -----------------------------
-# Evaluation Metrics
-# -----------------------------
+# Eval functions
 
 def pixel_accuracy(original, recalled):
     """Percentage of pixels that match the original pattern."""
@@ -88,10 +82,7 @@ def capacity_percentage(num_patterns, num_neurons):
     estimated_capacity = 0.14 * num_neurons
     return (num_patterns / estimated_capacity) * 100
 
-
-# -----------------------------
-# Energy Landscape Projection
-# -----------------------------
+# Energy plotting functions
 
 def plot_energy_landscape(W, pattern_a, pattern_b, title="Projected Hopfield Energy Landscape"):
     """
@@ -131,15 +122,63 @@ def plot_energy_landscape(W, pattern_a, pattern_b, title="Projected Hopfield Ene
     plt.tight_layout()
     plt.show()
 
+def plot_energy_landscape_3d_smooth(
+    W,
+    pattern_a,
+    pattern_b,
+    title="Smooth 3D Projected Hopfield Energy Landscape"
+):
+    """
+    Smooth 3D projection of the Hopfield energy landscape.
 
-# -----------------------------
-# 1. Fetch and Preprocess Faces
-# -----------------------------
+    This uses tanh() instead of sign() so the plotted surface
+    looks smoother.
+    """
+
+    x_vals = np.linspace(-2, 2, 100)
+    y_vals = np.linspace(-2, 2, 100)
+
+    X, Y = np.meshgrid(x_vals, y_vals)
+    Z = np.zeros_like(X)
+
+    for i in range(X.shape[0]):
+        for j in range(X.shape[1]):
+            combined_state = X[i, j] * pattern_a + Y[i, j] * pattern_b
+            smooth_state = np.tanh(combined_state)
+
+            Z[i, j] = hopfield_energy(W, smooth_state)
+
+    fig = plt.figure(figsize=(10, 7))
+    ax = fig.add_subplot(111, projection="3d")
+
+    surf = ax.plot_surface(
+        X,
+        Y,
+        Z,
+        cmap="viridis",
+        edgecolor="none",
+        antialiased=True,
+        alpha=0.95
+    )
+
+    ax.set_xlabel("Direction of target face")
+    ax.set_ylabel("Direction of another stored face")
+    ax.set_zlabel("Energy")
+    ax.set_title(title)
+
+    fig.colorbar(surf, shrink=0.6, aspect=12, label="Energy")
+
+    plt.tight_layout()
+    plt.show()
+
+# Fetch Faces
 
 print("Downloading and processing Olivetti Faces...")
 
 faces_data = fetch_olivetti_faces(shuffle=False)
 images = faces_data.images
+
+# Preprocess faces into bipolar patterns
 
 binary_patterns = []
 
@@ -155,9 +194,7 @@ print(f"\nEach face has {N} neurons.")
 print(f"Estimated Hopfield capacity: {0.14 * N:.2f} patterns.")
 
 
-# -----------------------------
-# 2. Setup Experiment Parameters
-# -----------------------------
+# Setup parameters for experiments
 
 np.random.seed(42)
 
@@ -172,10 +209,7 @@ fig, axes = plt.subplots(4, 8, figsize=(22, 11))
 
 print(f"\nRunning experiments on randomly selected people IDs: {random_people}")
 
-
-# -----------------------------
-# 3. Run Main Experiment
-# -----------------------------
+# Run experiments
 
 for row, target_idx in enumerate(target_indices):
     print(f"\nProcessing Subject {row + 1}...")
@@ -258,10 +292,7 @@ for row, target_idx in enumerate(target_indices):
                 fontsize=12
             )
 
-
-# -----------------------------
-# 4. Format Recall Grid
-# -----------------------------
+# Format Recall Grid
 
 for ax in axes.flatten():
     ax.axis("off")
@@ -275,10 +306,7 @@ plt.suptitle(
 plt.tight_layout(rect=(0, 0, 1, 0.95))
 plt.show()
 
-
-# -----------------------------
-# 5. Save and Display Results
-# -----------------------------
+# Save and display results
 
 results_df = pd.DataFrame(results)
 
@@ -289,68 +317,7 @@ results_df.to_csv("hopfield_results.csv", index=False)
 
 print("\nSaved results to hopfield_results.csv")
 
-
-# -----------------------------
-# 5.2. 3D Energy Landscape Projection s=tanh(xpa​+ypb​) instead of s=sign(xpa​+ypb​)
-# -----------------------------
-
-def plot_energy_landscape_3d_smooth(
-    W,
-    pattern_a,
-    pattern_b,
-    title="Smooth 3D Projected Hopfield Energy Landscape"
-):
-    """
-    Smooth 3D projection of the Hopfield energy landscape.
-
-    This uses tanh() instead of hard sign() so the plotted surface
-    looks smoother and more valley-like.
-
-    Note:
-    This is a continuous approximation for visualisation only.
-    The actual Hopfield Network still uses binary states {-1, +1}.
-    """
-
-    x_vals = np.linspace(-2, 2, 100)
-    y_vals = np.linspace(-2, 2, 100)
-
-    X, Y = np.meshgrid(x_vals, y_vals)
-    Z = np.zeros_like(X)
-
-    for i in range(X.shape[0]):
-        for j in range(X.shape[1]):
-            combined_state = X[i, j] * pattern_a + Y[i, j] * pattern_b
-
-            # Smooth instead of hard binary threshold
-            smooth_state = np.tanh(combined_state)
-
-            Z[i, j] = hopfield_energy(W, smooth_state)
-
-    fig = plt.figure(figsize=(10, 7))
-    ax = fig.add_subplot(111, projection="3d")
-
-    surf = ax.plot_surface(
-        X,
-        Y,
-        Z,
-        cmap="viridis",
-        edgecolor="none",
-        antialiased=True,
-        alpha=0.95
-    )
-
-    ax.set_xlabel("Direction of target face")
-    ax.set_ylabel("Direction of another stored face")
-    ax.set_zlabel("Energy")
-    ax.set_title(title)
-
-    fig.colorbar(surf, shrink=0.6, aspect=12, label="Energy")
-
-    plt.tight_layout()
-    plt.show()
-# -----------------------------
-# 6. Plot Metric Graphs
-# -----------------------------
+# Plot Metrics
 
 plt.figure(figsize=(8, 5))
 
@@ -370,7 +337,6 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.show()
-
 
 plt.figure(figsize=(8, 5))
 
@@ -432,12 +398,8 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
+# Plot one energy trajectory
 
-# -----------------------------
-# 7. Plot One Energy Trajectory
-# -----------------------------
-
-# Example: use first subject and largest memory load
 example_target_idx = target_indices[0]
 example_target = binary_patterns[example_target_idx]
 
@@ -472,10 +434,7 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-
-# -----------------------------
-# 8. Visualise Projected Energy Landscape
-# -----------------------------
+# Visualise projected energy landscape
 
 # Use target face and another stored face as two projection directions
 pattern_a = example_training_set[0]
