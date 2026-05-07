@@ -6,7 +6,7 @@ PROJECT OVERVIEW
 
 The primary objective of this repository is to quantify and visualize how Hopfield Networks store and recall patterns, particularly as they approach their theoretical capacity limit (approximately 0.14N).
 
-Key areas of investigation include:
+Key areas of investigation include
 
     Standard Hebbian Learning: Baseline experiments to test asynchronous recall and calculate energy landscapes.
 
