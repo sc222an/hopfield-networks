@@ -101,3 +101,5 @@ Step 3. Visualize Comparisons
 Ensure the generated CSV files are located in the expected directories (update the paths in result_visualization.py if necessary), then execute:
 Command: python source/result_visualization.py
 Expected Output: Head-to-head performance comparison graphs saved to the local directory.
+
+GitHub Link: https://github.com/sc222an/hopfield-networks
