@@ -22,13 +22,13 @@ REPOSITORY STRUCTURE
 
 In folder source
 
-analysis.py
+analysis.py:
     The baseline analysis script. It fetches the dataset, applies standard Hebbian learning, executes asynchronous recall on corrupted cues (50 percent missing data), and generates 2D/3D energy landscape plots.
 
-hopfieldfaces.py
+hopfieldfaces.py:
     A streamlined version of the baseline analysis, specifically configured to generate a visual grid demonstrating the memory degradation spectrum across random subjects.
 
-baseline_overload_tests.py
+baseline_overload_tests.py:
     A targeted stress test on a scaled-down 400-neuron network, highlighting the phase transition when memory load exceeds the theoretical capacity limit.
 
 less_similar.py:
@@ -58,11 +58,10 @@ ENVIRONMENT SETUP
 
 The following instructions detail how to set up the project locally using a Python Virtual Environment (venv).
 
-    Prerequisites
-    Ensure Python 3.8 or higher is installed on your system.
+Prerequisites
+Ensure Python 3.8 or higher is installed on your system.
 
-    Create the Virtual Environment
-    Navigate to the root directory of the project in your terminal and execute the following command to create a virtual environment named venv:
+Navigate to the root directory of the project in your terminal and execute the following command to create a virtual environment named venv:
 
 macOS and Linux:
     python3 -m venv venv
@@ -70,7 +69,6 @@ macOS and Linux:
 Windows:
     python -m venv venv
 
-Activate the Virtual Environment
 The environment must be activated before installing dependencies or executing scripts.
 
 macOS and Linux:
@@ -79,7 +77,6 @@ macOS and Linux:
 Windows:
     venv\Scripts\activate
 
-Install Dependencies
 Ensure the requirements.txt is present in your working directory, then execute:
     pip install -r requirements.txt
 
@@ -87,17 +84,17 @@ EXECUTION GUIDE
 
 Once the virtual environment is configured and active, the scripts can be executed sequentially to generate the experimental data and corresponding visualizations.
 
-Step 1. Generate Baseline Data
-Command: python source/analysis.py
+Step 1. Generate Baseline Data;
+Command: python source/analysis.py;
 Expected Output: hopfield_results.csv, energy landscape plots, and baseline recall grids.
 
-Step 2. Generate Experimental Data
+Step 2. Generate Experimental Data;
 Commands:
-python source/less_similar.py
-python storkey.py
+python source/less_similar.py;
+python storkey.py;
 Expected Output: Additional CSV files (least_similar_hopfield_results.csv, storkey_hopfield_results.csv) and corresponding visualizations.
 
-Step 3. Visualize Comparisons
+Step 3. Visualize Comparisons;
 Ensure the generated CSV files are located in the expected directories (update the paths in result_visualization.py if necessary), then execute:
 Command: python source/result_visualization.py
 Expected Output: Head-to-head performance comparison graphs saved to the local directory.
